@@ -3,28 +3,30 @@ import numpy as np
 import datetime
 import os
 import random
-
 import sys
 sys.path.append("..")
 from cores import Options
 from util import util
 from util import image_processing as impro
 
-
 opt = Options()
-opt.parser.add_argument('--datadir',type=str,default=' ', help='your images dir')
-opt.parser.add_argument('--savedir',type=str,default='../datasets/draw/face', help='')
+opt.parser.add_argument('--datadir', type=str, default='C:/coding/DeepMosaics/datasets/draw/face/origin_image', help='your images dir')
+opt.parser.add_argument('--savedir', type=str, default='C:/coding/DeepMosaics/datasets/draw/face', help='')
 opt = opt.getparse()
 
-mask_savedir = os.path.join(opt.savedir,'mask')
-img_savedir = os.path.join(opt.savedir,'origin_image')
+mask_savedir = os.path.join(opt.savedir, 'mask')
+img_savedir = os.path.join(opt.savedir, 'origin_image')
 util.makedirs(mask_savedir)
 util.makedirs(img_savedir)
 
+print('資料目錄:', opt.datadir)
 filepaths = util.Traversal(opt.datadir)
+print('Traversal結果:', filepaths)
 filepaths = util.is_imgs(filepaths)
+print('is_imgs結果:', filepaths)
+print('所有文件路徑:', filepaths)
 random.shuffle(filepaths)
-print('find image:',len(filepaths))
+print('找到的圖片數量:', len(filepaths))
 
 # mouse callback function
 drawing = False # true if mouse is pressed
@@ -46,11 +48,9 @@ def draw_circle(event,x,y,flags,param):
         cv2.circle(img_drawn,(x,y),brushsize,(0,255,0),-1)
 
 def makemask(img_drawn):
-    # starttime = datetime.datetime.now()
     mask = np.zeros(img_drawn.shape, np.uint8)
     for row in range(img_drawn.shape[0]):
         for col in range(img_drawn.shape[1]):
-            # if (img_drawn[row,col,:] == [0,255,0]).all(): #too slow
             if img_drawn[row,col,0] == 0:
                 if img_drawn[row,col,1] == 255:
                     if img_drawn[row,col,2] == 0:
@@ -76,7 +76,6 @@ for file in filepaths:
                 cv2.imwrite(os.path.join(mask_savedir,os.path.splitext(os.path.basename(file))[0]+'.png'),mask)
                 cv2.imwrite(os.path.join(img_savedir,os.path.basename(file)),img)   
                 print('Saved:',os.path.join(mask_savedir,os.path.splitext(os.path.basename(file))[0]+'.png'),mask)
-                # cv2.destroyAllWindows()
                 print('remain:',len(filepaths)-cnt)
                 brushsize = 20
                 break
@@ -93,4 +92,3 @@ for file in filepaths:
                 break
     except Exception as e:
         print(file,e)
-

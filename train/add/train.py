@@ -1,31 +1,85 @@
 import os
-import sys
-sys.path.append("..")
-sys.path.append("../..")
-from cores import Options
-opt = Options()
-
 import random
+import sys
 import datetime
 import time
-
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')
-from matplotlib import pyplot as plt
 import cv2
-
 import torch
 import torch.backends.cudnn as cudnn
-import torch.nn as nn
-from torch import optim
+from matplotlib import pyplot as plt
 
-from util import mosaic,util,ffmpeg,filt,data
+# 獲取當前文件的目錄
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# 將專案根目錄添加到 sys.path
+project_root = os.path.abspath(os.path.join(current_dir, '..', '..', '..'))
+sys.path.append(project_root)
+
+# 確認專案根目錄是否正確
+print(f"Project root: {project_root}")
+print(f"sys.path: {sys.path}")
+
+from cores import Options
+from util import util, data
 from util import image_processing as impro
-from models import unet_model,BiSeNet_model
+from models import unet_model, BiSeNet_model
+from torch import nn
 
+# 設定選項
+opt = Options()
+opt.parser.add_argument('--dataset', type=str, default='C:/coding/DeepMosaics/datasets/draw/face/origin_image', help='your dataset dir')
+opt.parser.add_argument('--savedir', type=str, default='C:\\coding\\DeepMosaics\\train\\add\\checkpoints', help='save dir')
+opt.parser.add_argument('--maxload', type=int, default=1000, help='max number of images to load')
+opt.parser.add_argument('--batchsize', type=int, default=16, help='batch size')
+opt.parser.add_argument('--model', type=str, default='UNet', help='model type')
+opt.parser.add_argument('--continue_train', type=bool, default=False, help='continue training from last checkpoint')
+opt.parser.add_argument('--gpu_id', type=int, default=-1, help='GPU id to use')
+opt = opt.getparse()
+
+# 檢查並創建保存目錄
+if not os.path.exists(opt.savedir):
+    os.makedirs(opt.savedir)
+print(f"checkpoints/face existed")
+
+# 檢查數據集
+dir_img = os.path.join(opt.dataset, 'images')
+dir_mask = os.path.join(opt.dataset, 'C:/coding/DeepMosaics/datasets/draw/face/mask')
+print('Dataset directory:', opt.dataset)
+print('Image directory:', dir_img)
+print('Mask directory:', dir_mask)
+
+imagepaths = sorted(util.Traversal(dir_img))[:opt.maxload]
+maskpaths = sorted(util.Traversal(dir_mask))[:opt.maxload]
+print('Image paths:', imagepaths)
+print('Mask paths:', maskpaths)
+
+util.shuffledata(imagepaths, maskpaths)
+if len(imagepaths) != len(maskpaths):
+    print('dataset error!')
+    exit(0)
+
+img_num = len(imagepaths)
+print('find images:', img_num)
+
+if img_num == 0:
+    print('No images found in the dataset directory.')
+    exit(0)
+
+# 創建日誌文件目錄
+log_dir = os.path.join(opt.savedir, 'C:/coding/DeepMosaics/train/add/train/add/checkpoints/face')
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+
+# 寫入日誌文件
+util.writelog(os.path.join(log_dir, 'C:/coding/DeepMosaics/train/add/checkpoints/face/loss.txt'),
+              str(time.asctime(time.localtime(time.time()))) + '\n' + util.opt2str(opt))
+
+# 訓練和驗證數據集
+imagepaths_eval = (imagepaths[int(img_num * 0.8):]).copy()
+maskpaths_eval = (maskpaths[int(img_num * 0.8):]).copy()
 
 '''
+
 --------------------------Get options--------------------------
 '''
 opt.parser.add_argument('--lr',type=float,default=0.001, help='')
@@ -39,7 +93,7 @@ opt.parser.add_argument('--savefreq',type=int,default=5, help='')
 opt.parser.add_argument('--maxload',type=int,default=1000000, help='')
 opt.parser.add_argument('--continue_train', action='store_true', help='')
 opt.parser.add_argument('--startepoch',type=int,default=0, help='')
-opt.parser.add_argument('--dataset',type=str,default='./datasets/face/', help='')
+opt.parser.add_argument('--dataset',type=str,default='C:/coding/DeepMosaics/datasets/draw/face/origin_image', help='')
 opt.parser.add_argument('--savename',type=str,default='face', help='')
 
 
@@ -47,11 +101,11 @@ opt.parser.add_argument('--savename',type=str,default='face', help='')
 --------------------------Init--------------------------
 '''
 opt = opt.getparse()
-dir_img = os.path.join(opt.dataset,'origin_image')
-dir_mask = os.path.join(opt.dataset,'mask')
-dir_checkpoint = os.path.join('checkpoints/',opt.savename)
+dir_img = os.path.join(opt.dataset, 'C:/coding/DeepMosaics/datasets/draw/face/origin_image')
+dir_mask = os.path.join(opt.dataset, 'C:/coding/DeepMosaics/datasets/draw/face/mask')
+dir_checkpoint = os.path.join('C:/coding/DeepMosaics/train/add/checkpoints',opt.savename)
 util.makedirs(dir_checkpoint)
-util.writelog(os.path.join(dir_checkpoint,'loss.txt'), 
+util.writelog(os.path.join(dir_checkpoint,'C:/coding/DeepMosaics/train/add/checkpoints/face/loss.txt'), 
               str(time.asctime(time.localtime(time.time())))+'\n'+util.opt2str(opt))
 
 def Totensor(img,gpu_id=True):
