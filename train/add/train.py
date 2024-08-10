@@ -1,4 +1,7 @@
 import os
+import sys
+sys.path.append("..")
+sys.path.append("../..")
 import random
 import datetime
 import time
@@ -6,14 +9,17 @@ import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
 from matplotlib import pyplot as plt
-from cores import options
+from cores import Options
 from util import util, data
 from util import image_processing as impro
 from models import unet_model, BiSeNet_model
 from torch import nn
 
+
+
+
 # 設定選項
-opt = options()
+opt = Options()
 opt.parser.add_argument('--dataset', type=str, default='C:/coding/DeepMosaics/datasets/draw/face/origin_image', help='your dataset dir')
 opt.parser.add_argument('--savedir', type=str, default='C:/coding/DeepMosaics/train/add/checkpoints', help='save dir')
 opt.parser.add_argument('--maxload', type=int, default=1000, help='max number of images to load')
@@ -29,7 +35,7 @@ if not os.path.exists(opt.savedir):
 print(f"checkpoints/face existed")
 
 # 檢查數據集
-dir_img = os.path.join(opt.dataset, 'images')
+dir_img = os.path.join(opt.dataset, 'C:/coding/DeepMosaics/datasets/draw/face/origin_image')
 dir_mask = os.path.join(opt.dataset, 'C:/coding/DeepMosaics/datasets/draw/face/mask')
 print('Dataset directory:', opt.dataset)
 print('Image directory:', dir_img)
@@ -69,13 +75,12 @@ maskpaths_eval = (maskpaths[int(img_num * 0.8):]).copy()
 
 --------------------------Get options--------------------------
 '''
-opt = options()
+opt = Options()
 opt.parser.add_argument('--lr',type=float,default=0.001, help='')
 opt.parser.add_argument('--finesize',type=int,default=360, help='')
 opt.parser.add_argument('--loadsize',type=int,default=400, help='')
 opt.parser.add_argument('--batchsize',type=int,default=8, help='')
 opt.parser.add_argument('--model',type=str,default='BiSeNet', help='BiSeNet or UNet')
-
 opt.parser.add_argument('--maxepoch',type=int,default=100, help='')
 opt.parser.add_argument('--savefreq',type=int,default=5, help='')
 opt.parser.add_argument('--maxload',type=int,default=1000000, help='')
@@ -139,9 +144,9 @@ maskpaths_eval = (maskpaths[int(img_num*0.8):]).copy()
 '''
 --------------------------def network--------------------------
 '''
-if opt.model =='UNet':
+if opt.models =='UNet':
     net = unet_model.UNet(n_channels = 3, n_classes = 1)
-elif opt.model =='BiSeNet':
+elif opt.models =='BiSeNet':
     net = BiSeNet_model.BiSeNet(num_classes=1, context_path='resnet18')
 
 if opt.continue_train:
