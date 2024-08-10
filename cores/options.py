@@ -21,8 +21,7 @@ class Options():
         self.parser.add_argument('--result_dir', type=str, default='./result',help='output media will be saved here')
         self.parser.add_argument('--temp_dir', type=str, default='./tmp', help='Temporary files will go here')
         self.parser.add_argument('--tempimage_type', type=str, default='jpg',help='type of temp image, png | jpg, png is better but occupy more storage space')
-        self.parser.add_argument('--netG', type=str, default='auto',
-            help='select model to use for netG(Clean mosaic and Transfer style) -> auto | unet_128 | unet_256 | resnet_9blocks | HD | video')
+        self.parser.add_argument('--netG', type=str, default='auto',help='select model to use for netG(Clean mosaic and Transfer style) -> auto | unet_128 | unet_256 | resnet_9blocks | HD | video')
         self.parser.add_argument('--fps', type=int, default=0,help='read and output fps, if 0-> origin')
         self.parser.add_argument('--no_preview', action='store_true', help='if specified,do not preview images when processing video. eg.(when run it on server)')
         self.parser.add_argument('--output_size', type=int, default=0,help='size of output media, if 0 -> origin')

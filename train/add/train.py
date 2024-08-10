@@ -1,34 +1,21 @@
 import os
 import random
-import sys
 import datetime
 import time
 import numpy as np
-import cv2
 import torch
 import torch.backends.cudnn as cudnn
 from matplotlib import pyplot as plt
-
-# 獲取當前文件的目錄
-current_dir = os.path.dirname(os.path.abspath(__file__))
-# 將專案根目錄添加到 sys.path
-project_root = os.path.abspath(os.path.join(current_dir, '..', '..', '..'))
-sys.path.append(project_root)
-
-# 確認專案根目錄是否正確
-print(f"Project root: {project_root}")
-print(f"sys.path: {sys.path}")
-
-from cores import Options
+from cores import options
 from util import util, data
 from util import image_processing as impro
 from models import unet_model, BiSeNet_model
 from torch import nn
 
 # 設定選項
-opt = Options()
+opt = options()
 opt.parser.add_argument('--dataset', type=str, default='C:/coding/DeepMosaics/datasets/draw/face/origin_image', help='your dataset dir')
-opt.parser.add_argument('--savedir', type=str, default='C:\\coding\\DeepMosaics\\train\\add\\checkpoints', help='save dir')
+opt.parser.add_argument('--savedir', type=str, default='C:/coding/DeepMosaics/train/add/checkpoints', help='save dir')
 opt.parser.add_argument('--maxload', type=int, default=1000, help='max number of images to load')
 opt.parser.add_argument('--batchsize', type=int, default=16, help='batch size')
 opt.parser.add_argument('--model', type=str, default='UNet', help='model type')
@@ -82,6 +69,7 @@ maskpaths_eval = (maskpaths[int(img_num * 0.8):]).copy()
 
 --------------------------Get options--------------------------
 '''
+opt = options()
 opt.parser.add_argument('--lr',type=float,default=0.001, help='')
 opt.parser.add_argument('--finesize',type=int,default=360, help='')
 opt.parser.add_argument('--loadsize',type=int,default=400, help='')
